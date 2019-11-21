@@ -6,27 +6,53 @@ module Task1_1 where
 -}
 
 import Todo(todo)
+import Data.Char
 
-data Term = IntConstant{ intValue :: Int }           -- числовая константа
-            | Variable{ varName :: String }          -- переменная
-            | BinaryTerm{ lhv :: Term, rhv :: Term } -- бинарная операция
+data Oper = Plus | Minus | Mult
+    deriving(Show, Eq)
+
+data Term = IntConstant {intValue :: Int}
+            | Variable{ varName :: String}
+            | BinaryTerm{ lhv :: Term, op :: Oper, rhv :: Term}
             deriving(Show,Eq)
 
 -- Для бинарных операций необходима не только реализация, но и адекватные
 -- ассоциативность и приоритет
+infixl 6 |+|
 (|+|) :: Term -> Term -> Term
-(|+|) l r = todo
+(|+|) (IntConstant l) (IntConstant r) = IntConstant (l + r)
+(|+|) (Variable l) (Variable r) = Variable (l ++ r)
+(|+|) _ _ = error "ERROR"
+
+infixl 6 |-|
 (|-|) :: Term -> Term -> Term
-(|-|) l r = todo
+(|-|) (IntConstant l) (IntConstant r) = IntConstant (l - r)
+(|-|) _ _ = error "Expected IntConstant"
+
+infixl 7 |*|
 (|*|) :: Term -> Term -> Term
-(|*|) l r = todo
+(|*|) (IntConstant l) (IntConstant r) = IntConstant (l + r)
+(|*|) _ _ = error "Expected IntConstant"
 
 -- Заменить переменную `varName` на `replacement`
 -- во всём выражении `expression`
 replaceVar :: String -> Term -> Term -> Term
-replaceVar varName replacement expression = todo
+replaceVar varName replacemet (BinaryTerm l op r)
+    | (Variable varName) == l = BinaryTerm replacemet op r
+    | (Variable varName) == r = BinaryTerm l op replacemet
+    | otherwise = error "There is no such variable"
+replaceVar varName replacemet (Variable v)
+    | (Variable varName) == (Variable v) = replacemet
+    | otherwise = error "There is no such variable"
+replaceVar varName replacemet (IntConstant i)
+    | (IntConstant (read varName :: Int)) == (IntConstant i) = replacemet
+    | otherwise = error "There is no such variable"
 
 -- Посчитать значение выражения `Term`
 -- если оно состоит только из констант
 evaluate :: Term -> Term
-evaluate expression = todo
+evaluate (BinaryTerm l op r)
+    | op == Plus = l |+| r
+    | op == Minus = l |-| r
+    | op == Mult = l |*| r
+    | otherwise = error "no such operation"
