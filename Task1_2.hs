@@ -8,20 +8,36 @@ module Task1_2 where
 import Todo(todo)
 
 -- синус числа (формула Тейлора)
-sin :: Double -> Double
-sin x = todo
+sin' :: Double -> Double -> Double -> Double -> Double -> Double
+sin' x a n s eps | (abs a) <= eps = s
+                 | otherwise      = sin' x ((-a)*x*x/((n+1)*(n+2))) (n+2) (s+a) eps  
+                   
+mySin x = sin' x x 1 0 0.000000001
 
 -- косинус числа (формула Тейлора)
-cos :: Double -> Double
-cos x = todo
+cos' :: Double -> Double -> Double -> Double -> Double -> Double
+cos' x a n s eps | (abs a) <= eps = s
+                 | otherwise      = cos' x (((-a)*x*x)/(n*(n-1))) (n+2) (s+a) eps  
+                   
+myCos x = cos' x 1 2 0 0.000000001
 
 -- наибольший общий делитель двух чисел
-gcd :: Integer -> Integer -> Integer
-gcd x y = todo
+myGcd :: Integer -> Integer -> Integer
+myGcd x y | x >= y    = gcd' x y 0
+          | otherwise = gcd' y x 0
+
+gcd' :: Integer -> Integer -> Integer -> Integer
+gcd' x y res | y == 0    = abs res
+             | otherwise = gcd' y (x `mod` y) y
+
 
 -- существует ли полный целочисленный квадрат в диапазоне [from, to)?
 doesSquareBetweenExist :: Integer -> Integer -> Bool
-doesSquareBetweenExist from to = todo
+doesSquareBetweenExist _ 0 = False
+doesSquareBetweenExist from to | from == to      = False
+                               | sq from == from = True
+                               | otherwise       = doesSquareBetweenExist (from + 1) to
+                               where sq x = floor ((sqrt $ fromIntegral x :: Double) ** 2)
 
 -- является ли дата корректной с учётом количества дней в месяце и
 -- вискокосных годов?
