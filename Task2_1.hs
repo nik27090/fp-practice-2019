@@ -77,7 +77,18 @@ minRightTreeVal (key, val) = key
 
 -- Поиск ближайшего снизу ключа относительно заданного
 nearestLE :: Integer -> TreeMap v -> (Integer, v)
-nearestLE i t = todo
+nearestLE _ EmptyTree = error "nearestLE :: tree is empty"
+nearestLE i (Node t1 (key, val) t2) 
+    | key == i = (key, val)
+    | key > i = nearestLE i t1
+    | key < i = case (t2) of 
+        Node t1 (key, val) t2
+            | key == i -> (key, val)
+            | key < i -> nearestLE i t2 
+            | key > i -> case (t1) of 
+                EmptyTree -> (key, val)
+                otherwise -> nearestLE i t1
+        otherwise -> (key, val)
 
 -- Построение дерева из списка пар
 treeFromList :: [(Integer, v)] -> TreeMap v
@@ -90,4 +101,12 @@ listFromTree (Node t1 (key, val) t2) = listFromTree t1 ++ [(key, val)] ++ listFr
 
 -- Поиск k-той порядковой статистики дерева
 kMean :: Integer -> TreeMap v -> (Integer, v)
-kMean i t = todo
+kMean _ EmptyTree = error "kMean :: tree is Empty"
+kMean i (Node t1 (key, value) t2) 
+    | sizeOf t1 == i = (key, value)
+    | sizeOf t1 > i = kMean i t1
+    | sizeOf t1 < i = kMean (i - sizeOf t1 - 1) t2
+
+sizeOf:: TreeMap v -> Integer
+sizeOf EmptyTree = 0
+sizeOf (Node t1 _ t2) = sizeOf t1 + 1 + sizeOf t2
