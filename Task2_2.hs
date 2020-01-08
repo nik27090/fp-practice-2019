@@ -12,13 +12,17 @@ import Prelude hiding (foldl, foldr, unfoldr, map, concatMap,
     filter, maxBy, minBy, reverse, sum, product, elem)
 
 foldl :: (b -> a -> b) -> b -> [a] -> b
-foldl = todo
+foldl f x0 [] = x0
+foldl f x0 (x:xs) = foldl f (f x0 x) xs
 
 foldr :: (a -> b -> b) -> b -> [a] -> b
-foldr = todo
+foldr f x0 [] = x0
+foldr f x0 (x:xs) = f x (foldr f x0 xs)
 
 unfoldr :: (b -> Maybe (a, b)) -> b -> [a]
-unfoldr = todo
+unfoldr f b = case f b of 
+    Just (a, b') -> a : unfoldr f b'
+    Nothing      -> []
 
 -- Сумма всех элементов списка (пример)
 sum :: [Integer] -> Integer
@@ -30,35 +34,39 @@ reverse lst = foldl f [] lst where f t h = h:t
 
 -- Отображение элементов списка
 map :: (a -> b) -> [a] -> [b]
-map = todo
+map f = foldr (\ x xs -> f x : xs) []
 
 -- Произведение всех элементов списка
 product :: [Integer] -> Integer
-product = todo
+product = foldr (*) 1
 
 -- Выделение из списка Maybe всех существующих значений
 catMaybes :: [Maybe a] -> [a]
-catMaybes = todo
+catMaybes = foldr f [] 
+    where f Nothing lst  = lst
+          f (Just i) lst = i : lst
 
 -- Диагональ матрицы
 diagonal :: [[a]] -> [a]
-diagonal = todo
+diagonal [[]]       = []
+diagonal (xs:[])    = [head xs]
+diagonal (x:xs)     = head x : diagonal (map tail xs)
 
 -- Фильтр для всех элементов, не соответствующих предикату
 filterNot :: (a -> Bool) -> [a] -> [a]
-filterNot = todo
+filterNot f = foldr (\ x xs -> if f x then xs else x : xs) []
 
 -- Поиск элемента в списке
 elem :: (Eq a) => a -> [a] -> Bool
-elem = todo
+elem i = foldr (\ x xs -> if x == i then True else xs) False 
 
 -- Список чисел в диапазоне [from, to) с шагом step
 rangeTo :: Integer -> Integer -> Integer -> [Integer]
-rangeTo from to step = todo
+rangeTo from to step = unfoldr (\b -> if b >= to then Nothing else Just (b, b+step)) from
 
 -- Конкатенация двух списков
 append :: [a] -> [a] -> [a]
-append = todo
+append start end = foldr (:) end start
 
 -- Разбиение списка lst на куски размером n
 -- (последний кусок может быть меньше)
