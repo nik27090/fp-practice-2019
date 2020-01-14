@@ -71,4 +71,4 @@ append start end = foldr (:) end start
 -- Разбиение списка lst на куски размером n
 -- (последний кусок может быть меньше)
 groups :: [a] -> Integer -> [[a]]
-groups lst n = todo
+groups lst n = unfoldr (\x -> if null x then Nothing else Just (take (fromIntegral n) x, drop (fromIntegral n) x)) lst
