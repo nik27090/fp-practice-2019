@@ -34,17 +34,17 @@ instance Ord WeirdPeanoNumber where
     compare x y 
         | toInt x > toInt y = GT
         | toInt y < toInt y = LT
-        | otherwise = EQ
-    (<) x y = toInt x < toInt y
+        | otherwise         = EQ
+    (<) x y  = toInt x < toInt y
     (<=) x y = toInt x <= toInt y
-    (>) x y = toInt x > toInt y
+    (>) x y  = toInt x > toInt y
     (>=) x y = toInt x >= toInt y
     max x y
         | toInt x >= toInt y = x
-        | otherwise = y
+        | otherwise          = y
     min x y
         | toInt x <= toInt y = x
-        | otherwise = y
+        | otherwise          = y
 
 instance Num WeirdPeanoNumber where
     (+) Zero y = y
@@ -77,15 +77,14 @@ instance Num WeirdPeanoNumber where
         | otherwise = negate x
 
     signum x
-        | x > Zero = 1
-        | x < Zero = -1
+        | x > Zero  = 1
+        | x < Zero  = -1
         | otherwise = 0
 
     fromInteger i 
         | i == 0    = Zero
-        | i < 0 = Pred $ fromInteger $ i + 1
+        | i < 0     = Pred $ fromInteger $ i + 1
         | otherwise = Succ $ fromInteger $ i - 1
-
 
 instance Enum WeirdPeanoNumber where
     toEnum = toWPN
@@ -93,5 +92,17 @@ instance Enum WeirdPeanoNumber where
 
 instance Real WeirdPeanoNumber where
     toRational x = toRational $ toInt x
-    
+
 instance Integral WeirdPeanoNumber where
+    toInteger x = toInteger' x 0 where
+        toInteger' Zero sum     = sum
+        toInteger' (Succ x) sum = toInteger' x (sum + 1)
+        toInteger' (Pred x) sum = toInteger' x (sum - 1)
+
+    quotRem _ Zero = error "divide by zero"
+    quotRem x y    = quotRem' Zero (abs x) (abs y) where
+        quotRem' q n m 
+            | n >= m    = quotRem' (Succ q) (n - m) m
+            | otherwise = (signum x * signum y * q, signum x * n)
+
+    divMod = quotRem
