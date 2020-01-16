@@ -10,40 +10,103 @@ import Todo(todo)
 
 -- Ассоциативный массив на основе бинарного дерева поиска
 -- Ключи - Integer, значения - произвольного типа
-data TreeMap v = ChangeMe
+data TreeMap v = EmptyTree
+               | Node (TreeMap v) (Integer, v) (TreeMap v)
+               deriving (Show, Read, Eq)
 
 -- Пустое дерево
 emptyTree :: TreeMap v
-emptyTree = todo
+emptyTree = EmptyTree
 
 -- Содержится ли заданный ключ в дереве?
 contains :: TreeMap v -> Integer -> Bool
-contains t k = todo
+contains EmptyTree _ = False
+contains (Node t1 (key, _) t2) k 
+    | key == k  = True
+    | key > k   = contains t1 k
+    | otherwise = contains t2 k 
 
 -- Значение для заданного ключа
 lookup :: Integer -> TreeMap v -> v
 lookup k t = todo
 
+-- Значение для заданного ключа
+lookup' :: TreeMap v -> Integer -> v
+lookup' EmptyTree _ = error "lookop' :: Tree is empty"
+lookup' (Node t1 (key, val) t2) k 
+    | contains (Node t1 (key, val) t2) k = val
+    | otherwise                          = error "lookop' :: Value does not exist"
+
 -- Вставка пары (ключ, значение) в дерево
 insert :: (Integer, v) -> TreeMap v -> TreeMap v
-insert (k, v) t = todo
+insert (k, val) EmptyTree = Node EmptyTree (k, val) EmptyTree
+insert (k2, v2) (Node t1 (k1, v1) t2)
+    | k1 == k2  = Node t1 (k2, v2) t2 
+    | k2 > k1   = Node t1 (k1, v1) (insert (k2, v2) t2)
+    | otherwise = Node (insert (k2,v2) t1) (k1, v1) t2
 
 -- Удаление элемента по ключу
-remove :: Integer -> TreeMap v -> TreeMap v
-remove i t = todo
+remove ::  TreeMap v -> Integer -> TreeMap v
+remove EmptyTree _ = EmptyTree
+remove (Node t1 (key, val) t2) k 
+    | k > key  = Node t1 (key, val) (remove t2 k)
+    | k < key  = Node (remove t1 k) (key, val) t2
+    | k == key =
+--Если обоих детей нет, то удаляем текущий узел.
+        if (isEmpty t1) && (isEmpty t2) 
+            then EmptyTree
+--Если удаляемый узел имеет только одного сына, заменем удаляемый узел на сына.
+            else if (isEmpty t2)
+                then t1
+                else if (isEmpty t1)
+                    then t2
+--Если оба ребёнка присутствуют заменяем удаляемый узел элементом с наименьшим значением среди потомков правого сына
+                    else if (True) 
+                        then Node t1 (minRightTree t2) (remove t2 (minRightTreeVal $ minRightTree t2))
+                        else error "remove :: should never work"
+
+isEmpty :: TreeMap v -> Bool
+isEmpty EmptyTree = True
+isEmpty _ = False
+
+minRightTree :: TreeMap v -> (Integer, v)
+minRightTree t = head (listFromTree t) 
+
+minRightTreeVal :: (Integer, v) -> Integer
+minRightTreeVal (key, val) = key 
 
 -- Поиск ближайшего снизу ключа относительно заданного
 nearestLE :: Integer -> TreeMap v -> (Integer, v)
-nearestLE i t = todo
+nearestLE _ EmptyTree = error "nearestLE :: tree is empty"
+nearestLE i (Node t1 (key, val) t2) 
+    | key == i = (key, val)
+    | key > i = nearestLE i t1
+    | key < i = case (t2) of 
+        Node t1 (key, val) t2
+            | key == i -> (key, val)
+            | key < i -> nearestLE i t2 
+            | key > i -> case (t1) of 
+                EmptyTree -> (key, val)
+                otherwise -> nearestLE i t1
+        otherwise -> (key, val)
 
 -- Построение дерева из списка пар
 treeFromList :: [(Integer, v)] -> TreeMap v
-treeFromList lst = todo
+treeFromList lst = foldr insert EmptyTree lst
 
 -- Построение списка пар из дерева
 listFromTree :: TreeMap v -> [(Integer, v)]
-listFromTree t = todo
+listFromTree EmptyTree = []
+listFromTree (Node t1 (key, val) t2) = listFromTree t1 ++ [(key, val)] ++ listFromTree t2 
 
 -- Поиск k-той порядковой статистики дерева
 kMean :: Integer -> TreeMap v -> (Integer, v)
-kMean i t = todo
+kMean _ EmptyTree = error "kMean :: tree is Empty"
+kMean i (Node t1 (key, value) t2) 
+    | sizeOf t1 == i = (key, value)
+    | sizeOf t1 > i = kMean i t1
+    | sizeOf t1 < i = kMean (i - sizeOf t1 - 1) t2
+
+sizeOf:: TreeMap v -> Integer
+sizeOf EmptyTree = 0
+sizeOf (Node t1 _ t2) = sizeOf t1 + 1 + sizeOf t2
