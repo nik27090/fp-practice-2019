@@ -48,4 +48,4 @@ instance Semigroup (PSet a) where
 -- fmap должен быть в нашем случае:
 -- fmap :: ((a -> Bool) -> (b -> Bool)) -> PSet (a -> Bool) -> PSet (b -> Bool)
 instance Functor PSet where
-    fmap f (PSet ps) = PSet (f ps)
+    fmap f (PSet ps) = PSet (f.ps)
