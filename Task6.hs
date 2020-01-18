@@ -42,10 +42,39 @@ minus = do
     char '-'
     return (-)
 
+factorial :: Parser (Integer -> Integer)
+factorial = do
+    char '!'
+    return fac
+
+fac :: Integer -> Integer
+fac n
+    | n >= 0 = let
+        helper acc 0 = acc
+        helper acc n = helper (acc * n) (n - 1)
+      in helper 1 n
+    | otherwise = error "arg must be >= 0"
+
+neg :: Integer -> Integer
+neg x = x*(-1)
+
+negative :: Parser (Integer -> Integer)
+negative = do 
+    char '-'
+    return neg
+
+factoriationOrNegation :: Parser Integer
+factoriationOrNegation = do 
+    spaces
+    t <- many (factorial <|> negative)
+    spaces
+    rhv <- atom
+    return $ foldl (\x f -> f x) rhv t    
+
 multiplication :: Parser Integer
 multiplication = do
     spaces
-    lhv <- atom
+    lhv <- factoriationOrNegation
     spaces
     t <- many tail
     return $ applyMany lhv t
@@ -53,7 +82,7 @@ multiplication = do
             do
                 f <- star <|> div_
                 spaces
-                rhv <- atom
+                rhv <- factoriationOrNegation
                 spaces
                 return (`f` rhv)
 
