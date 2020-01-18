@@ -11,3 +11,33 @@ module Task4_1 where
 data FunMonad a = FunMonad { fun :: String -> a }
 
 -- реализуйте классы `Functor`, `Applicative` и `Monad` для типа `FunMonad`
+
+-- Функтор должен соответствовать следующим законам:
+-- 1) fmap id = id
+-- 2) fmap (p . q) = (fmap p) . (fmap q)
+ 
+-- Данный функтор разворачивает функцию из контекста -> применяет к ней другую функцию -> и вновь заворачивает функцию в контекст.
+instance Functor FunMonad where
+--	fmap :: (a -> b) -> f a -> f b
+    fmap f (FunMonad fm) = FunMonad (\x -> f (fm x))
+
+-- У данного аппликативного функтора обе функции в контексте -> он их распаковывает -> применяет одну к другой ->
+-- -> запаковывает полученую новую функцю в контекст
+instance Applicative FunMonad where
+--(<*>) :: f (a -> b) -> f a -> f b
+    pure a = FunMonad (\_ -> a)
+    (<*>) (FunMonad lfm) (FunMonad rfm) = FunMonad (\x -> lfm x (rfm x))
+
+
+-- Даная монада применяет функцию, которая возвращает функцию в контексте,
+-- к функции в контексте.
+-- Минимальной реализацие Monad является метод (>>=).
+instance Monad FunMonad where
+    (>>=) (FunMonad mn) f = FunMonad (\x -> fun (f (mn x)) x)
+
+-- По определению: (>>=) :: m a -> (a -> m b) -> m b
+-- В данном случае: (>>=) :: FumMonad (String -> a) -> ((String -> a) -> FunMonad b) -> FunMonad b
+-- Таким образом мы применяем функцию (String -> a) к аргументу 'x',
+-- к этой функции применяем функцию '(String -> a) -> FunMonad b', получаем 'String -> FunMonad b',
+-- "вытаскиваем" b с помощью метода 'fun :: FunMonad a -> String -> a', обарачиваем в контекст.
+-- Результат: FunMonad b (Все сходится).
